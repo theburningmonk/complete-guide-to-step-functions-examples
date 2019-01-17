@@ -1,0 +1,31 @@
+service: step-functions-guide
+
+plugins:
+  - serverless-step-functions
+  - serverless-pseudo-parameters
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: dev
+
+functions:
+  handler:
+    handler: functions/handler.handler
+
+stepFunctions:
+  stateMachines:
+    apiGatewayTrigger:
+      name: api-gateway-trigger
+      events:
+        - http:
+            path: /
+            method: POST
+      definition:
+        Comment: Demonstrate how API Gateway integration works
+        StartAt: DoSomething
+        States:
+          DoSomething:
+            Type: Task
+            Resource: arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${self:provider.stage}-handler
+            End: true

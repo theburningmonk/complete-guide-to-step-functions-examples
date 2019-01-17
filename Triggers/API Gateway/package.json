@@ -1,0 +1,12 @@
+{
+    "name": "api gateway",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {},
+    "author": "",
+    "devDependencies": {
+        "serverless-pseudo-parameters": "^2.4.0",
+        "serverless-step-functions": "^1.9.0"
+    }
+}
