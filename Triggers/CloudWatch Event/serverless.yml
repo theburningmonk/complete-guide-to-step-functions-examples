@@ -1,0 +1,46 @@
+service: step-functions-guide
+
+plugins:
+  - serverless-step-functions
+  - serverless-pseudo-parameters
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: dev
+
+functions:
+  handler:
+    handler: functions/handler.handler
+
+stepFunctions:
+  stateMachines:
+    cloudWatchEventTrigger:
+      name: cloudwatch-event-trigger
+      events:
+        - schedule: rate(1 minute)
+        # - schedule: 
+        #     rate: rate(1 minute)
+        #     input:
+        #       foo: bar
+        # - cloudwatchEvent:
+        #     event:
+        #       source:
+        #         - aws.s3
+        #       detail-type:
+        #         - AWS API Call via CloudTrail
+        #       detail:
+        #         eventSource:
+        #           s3.amazonaws.com
+        #         eventName:
+        #           PutObject
+        #         requestParameters:
+        #           bucketName: [ <bucket-name-goes-here> ]    
+      definition:
+        Comment: Demonstrate how CloudWatch Event integration works
+        StartAt: DoSomething
+        States:
+          DoSomething:
+            Type: Task
+            Resource: arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${self:provider.stage}-handler
+            End: true
