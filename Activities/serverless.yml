@@ -11,7 +11,7 @@ provider:
 
 stepFunctions:
   stateMachines:
-    cloudWatchEventTrigger:
+    activityExample:
       name: activities-example
       definition:
         Comment: Demonstrate how activity works
