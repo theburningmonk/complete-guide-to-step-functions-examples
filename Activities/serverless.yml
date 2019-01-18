@@ -1,0 +1,25 @@
+service: step-functions-guide
+
+plugins:
+  - serverless-step-functions
+  - serverless-pseudo-parameters
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: dev
+
+stepFunctions:
+  stateMachines:
+    cloudWatchEventTrigger:
+      name: activities-example
+      definition:
+        Comment: Demonstrate how activity works
+        StartAt: WaitForActivity
+        States:
+          WaitForActivity:
+            Type: Task
+            Resource: arn:aws:states:#{AWS::Region}:#{AWS::AccountId}:activity:myActivity
+            End: true
+  activities:
+    - myActivity
