@@ -17,8 +17,8 @@ stepFunctions:
   stateMachines:
     cloudWatchEventTrigger:
       name: cloudwatch-event-trigger
-      events:
-        - schedule: rate(1 minute)
+      # events:
+        # - schedule: rate(1 minute)
         # - schedule: 
         #     rate: rate(1 minute)
         #     input:
@@ -31,11 +31,12 @@ stepFunctions:
         #         - AWS API Call via CloudTrail
         #       detail:
         #         eventSource:
-        #           s3.amazonaws.com
+        #           - s3.amazonaws.com
         #         eventName:
-        #           PutObject
+        #           - PutObject
         #         requestParameters:
-        #           bucketName: [ <bucket-name-goes-here> ]    
+        #           bucketName: 
+        #             - bucket name goes here
       definition:
         Comment: Demonstrate how CloudWatch Event integration works
         StartAt: DoSomething
