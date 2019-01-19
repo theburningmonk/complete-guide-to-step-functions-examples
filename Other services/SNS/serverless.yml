@@ -1,0 +1,51 @@
+service: step-functions-guide
+
+plugins:
+  - serverless-step-functions
+  - serverless-pseudo-parameters
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: dev
+
+stepFunctions:
+  stateMachines:
+    snsExample:
+      name: sns-example
+      role:
+        Fn::GetAtt: [ StateMachineRole, Arn ]
+      definition:
+        Comment: Demonstrate how the SNS integration works
+        StartAt: Publish SNS message
+        States:
+          Publish SNS message:
+            Type: Task
+            Resource: arn:aws:states:::sns:publish
+            Parameters:
+              Message: "{ \"answer\": 42 }"
+              TopicArn: "arn:aws:sns:#{AWS::Region}:#{AWS::AccountId}:stepfunctions-test"
+            End: true
+
+resources:
+  Resources:
+    StateMachineRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version : "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: states.amazonaws.com
+              Action: sts:AssumeRole
+        Path: /
+        Policies:
+          - PolicyName: root
+            PolicyDocument:
+              Version : "2012-10-17"
+              Statement:
+                - Effect: Allow
+                  Action: sns:Publish
+                  Resource: arn:aws:sns:#{AWS::Region}:#{AWS::AccountId}:stepfunctions-test
+        
