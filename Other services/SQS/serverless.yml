@@ -1,0 +1,55 @@
+service: step-functions-guide
+
+plugins:
+  - serverless-step-functions
+  - serverless-pseudo-parameters
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: dev
+
+stepFunctions:
+  stateMachines:
+    snsExample:
+      name: sqs-example
+      role:
+        Fn::GetAtt: [ StateMachineRole, Arn ]
+      definition:
+        Comment: Demonstrate how the SQS integration works
+        StartAt: Publish SQS message
+        States:
+          Publish SQS message:
+            Type: Task
+            Resource: arn:aws:states:::sqs:sendMessage
+            Parameters:
+              QueueUrl: https://sqs.us-east-1.amazonaws.com/#{AWS::AccountId}/stepfunctions-test
+              MessageBody: This is a static message
+              MessageAttributes:
+                foo:
+                  DataType: String
+                  StringValue: bar
+            End: true
+
+resources:
+  Resources:
+    StateMachineRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version : "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: states.amazonaws.com
+              Action: sts:AssumeRole
+        Path: /
+        Policies:
+          - PolicyName: root
+            PolicyDocument:
+              Version : "2012-10-17"
+              Statement:
+                - Effect: Allow
+                  Action: sqs:SendMessage
+                  Resource: arn:aws:sqs:#{AWS::Region}:#{AWS::AccountId}:stepfunctions-test
+        
