@@ -13,8 +13,6 @@ stepFunctions:
   stateMachines:
     snsExample:
       name: sns-example
-      role:
-        Fn::GetAtt: [ StateMachineRole, Arn ]
       definition:
         Comment: Demonstrate how the SNS integration works
         StartAt: Publish SNS message
@@ -26,26 +24,3 @@ stepFunctions:
               Message: "{ \"answer\": 42 }"
               TopicArn: "arn:aws:sns:#{AWS::Region}:#{AWS::AccountId}:stepfunctions-test"
             End: true
-
-resources:
-  Resources:
-    StateMachineRole:
-      Type: AWS::IAM::Role
-      Properties:
-        AssumeRolePolicyDocument:
-          Version : "2012-10-17"
-          Statement:
-            - Effect: Allow
-              Principal:
-                Service: states.amazonaws.com
-              Action: sts:AssumeRole
-        Path: /
-        Policies:
-          - PolicyName: root
-            PolicyDocument:
-              Version : "2012-10-17"
-              Statement:
-                - Effect: Allow
-                  Action: sns:Publish
-                  Resource: arn:aws:sns:#{AWS::Region}:#{AWS::AccountId}:stepfunctions-test
-        
