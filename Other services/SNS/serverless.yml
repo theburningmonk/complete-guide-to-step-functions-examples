@@ -23,4 +23,8 @@ stepFunctions:
             Parameters:
               Message: "{ \"answer\": 42 }"
               TopicArn: "arn:aws:sns:#{AWS::Region}:#{AWS::AccountId}:stepfunctions-test"
+              MessageAttributes:
+                foo:
+                  DataType: String
+                  StringValue: bar
             End: true
