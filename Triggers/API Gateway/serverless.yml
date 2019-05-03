@@ -2,7 +2,6 @@ service: step-functions-guide
 
 plugins:
   - serverless-step-functions
-  - serverless-pseudo-parameters
 
 provider:
   name: aws
@@ -27,5 +26,6 @@ stepFunctions:
         States:
           DoSomething:
             Type: Task
-            Resource: arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${self:provider.stage}-handler
+            Resource:
+              Ref: HandlerLambdaFunction
             End: true

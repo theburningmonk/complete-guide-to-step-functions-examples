@@ -9,6 +9,10 @@ provider:
   runtime: nodejs8.10
   stage: dev
 
+functions:
+  hello:
+    handler: index.handler
+
 stepFunctions:
   stateMachines:
     snsExample:
@@ -22,9 +26,28 @@ stepFunctions:
             Resource: arn:aws:states:::sns:publish
             Parameters:
               Message: "{ \"answer\": 42 }"
-              TopicArn: "arn:aws:sns:#{AWS::Region}:#{AWS::AccountId}:stepfunctions-test"
+              TopicArn:
+                Ref: AlarmTopic
               MessageAttributes:
                 foo:
                   DataType: String
                   StringValue: bar
             End: true
+      alarms:
+        topics:
+          ok: 'arn:aws:sns:us-east-1:374852340823:NotifyMe'
+          alarm: 'arn:aws:sns:us-east-1:374852340823:NotifyMe'
+          insufficientData: 'arn:aws:sns:us-east-1:374852340823:NotifyMe'
+        metrics:
+          - executionsTimeOut
+          - executionsFailed
+          - executionsAborted
+          - executionThrottled
+
+resources:
+  Resources:
+    AlarmTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        DisplayName: my-topic
+        TopicName: my-topic
