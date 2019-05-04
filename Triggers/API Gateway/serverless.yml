@@ -27,5 +27,5 @@ stepFunctions:
           DoSomething:
             Type: Task
             Resource:
-              Ref: HandlerLambdaFunction
+              Fn::GetAtt: [HandlerLambdaFunction, Arn]
             End: true
