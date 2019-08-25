@@ -1,0 +1,18 @@
+{
+  "name": "Callbacks",
+  "version": "1.0.0",
+  "description": "",
+  "main": "handler.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "serverless-step-functions": "^2.6.0"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.517.0"
+  }
+}

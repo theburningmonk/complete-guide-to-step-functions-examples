@@ -1,0 +1,89 @@
+service: step-functions-guide-callbacks
+
+plugins:
+  - serverless-step-functions
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  iamRoleStatements:
+    - Effect: Allow
+      Action: states:SendTaskSuccess
+      Resource: '*'
+
+functions:
+  sqs:
+    handler: handler.sqs
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt: [MyQueue, Arn]
+          batchSize: 1
+
+  lambda:
+    handler: handler.lambda
+
+  sns:
+    handler: handler.sns
+    events:
+      - sns:
+          arn:
+            Ref: MyTopic
+          topicName: callback-topic
+
+stepFunctions:
+  validate: true
+  stateMachines:
+    callbackExample:      
+      name: callback-example
+      definition:
+        Comment: Demonstrate how the use callbacks by sending Token
+        StartAt: Publish SQS message
+        States:
+          Publish SQS message:
+            Type: Task
+            Resource: arn:aws:states:::sqs:sendMessage.waitForTaskToken
+            Parameters:
+              QueueUrl:
+                Ref: MyQueue
+              MessageBody:
+                StateMachineId.$: $$.StateMachine.Id
+                ExecutionId.$: $$.Execution.Id
+                StateName.$: $$.State.Name
+                Token.$: $$.Task.Token
+            Next: Invoke Lambda
+          Invoke Lambda:
+            Type: Task
+            Resource: arn:aws:states:::lambda:invoke.waitForTaskToken
+            Parameters:
+              FunctionName:
+                Ref: lambda
+              Payload:
+                StateMachineId.$: $$.StateMachine.Id
+                ExecutionId.$: $$.Execution.Id
+                StateName.$: $$.State.Name
+                Token.$: $$.Task.Token
+            Next: Publish SNS message
+          Publish SNS message:
+            Type: Task
+            Resource: arn:aws:states:::sns:publish.waitForTaskToken
+            Parameters:
+              TopicArn:
+                Ref: MyTopic
+              Message:
+                StateMachineId.$: $$.StateMachine.Id
+                ExecutionId.$: $$.Execution.Id
+                StateName.$: $$.State.Name
+                Token.$: $$.Task.Token
+            End: true
+
+resources:
+  Resources:
+    MyQueue:
+      Type: AWS::SQS::Queue
+
+    MyTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        DisplayName: callback-topic
+        TopicName: callback-topic
