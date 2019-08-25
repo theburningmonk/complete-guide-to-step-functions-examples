@@ -1,0 +1,85 @@
+service: step-functions-guide-nested-workflows
+
+plugins:
+  - serverless-step-functions
+  - serverless-pseudo-parameters
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  iamRoleStatements:
+    - Effect: Allow
+      Action: states:SendTaskSuccess
+      Resource: '*'
+
+functions:
+  hello:
+    handler: handler.hello
+
+stepFunctions:
+  validate: true
+  stateMachines:
+    root:
+      id: RootStateMachine
+      name: nested-example-root
+      definition:
+        Comment: Demonstrate how the use nested workflows
+        StartAt: Fire and Forget
+        States:
+          Fire and Forget:
+            Type: Task
+            Resource: arn:aws:states:::states:startExecution
+            Parameters:  
+              Input: "42"                
+              StateMachineArn: arn:aws:states:#{AWS::Region}:#{AWS::AccountId}:stateMachine:wait-and-respond
+              Name.$: $.name
+            ResultPath: $.lastResponse
+            Next: Sync
+          Sync:
+            Type: Task
+            Resource: arn:aws:states:::states:startExecution.sync
+            Parameters:  
+              Input: "42"
+              StateMachineArn: arn:aws:states:#{AWS::Region}:#{AWS::AccountId}:stateMachine:wait-and-respond
+              Name.$: $.name
+            ResultPath: $.lastResponse
+            Next: Callback
+          Callback:
+            Type: Task
+            Resource: arn:aws:states:::states:startExecution.waitForTaskToken
+            Parameters:  
+              Input:
+                Token.$: $$.Task.Token
+              StateMachineArn: arn:aws:states:#{AWS::Region}:#{AWS::AccountId}:stateMachine:wait-and-callback
+              Name.$: $.name
+            ResultPath: $.lastResponse
+            End: true
+    waitAndRespond:
+      id: WaitAndRespondStateMachine
+      name: wait-and-respond
+      definition:
+        StartAt: Wait
+        States:
+          Wait:
+            Type: Wait
+            Seconds: 10
+            Next: Respond
+          Respond:
+            Type: Pass
+            Result: 42
+            End: true
+    waitAndCallback:
+      id: WaitAndCallbackStateMachine
+      name: wait-and-callback
+      definition:
+        StartAt: Wait
+        States:
+          Wait:
+            Type: Wait
+            Seconds: 10
+            Next: Callback
+          Callback:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [hello, Arn]            
+            End: true
