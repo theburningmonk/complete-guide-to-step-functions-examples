@@ -1,5 +1,6 @@
 {
   "name": "Callbacks",
+  "private": true,
   "version": "1.0.0",
   "description": "",
   "main": "handler.js",
@@ -7,7 +8,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
+  "author": "Yan Cui",
   "license": "ISC",
   "devDependencies": {
     "serverless-step-functions": "^2.6.0"

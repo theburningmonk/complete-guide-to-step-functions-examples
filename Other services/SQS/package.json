@@ -1,10 +1,11 @@
 {
     "name": "sqs",
+    "private": true,
     "version": "1.0.0",
     "description": "",
     "main": "index.js",
     "scripts": {},
-    "author": "",
+    "author": "Yan Cui",
     "license": "ISC",
     "devDependencies": {
         "serverless-step-functions": "^1.18.0"
