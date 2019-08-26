@@ -13,8 +13,13 @@ provider:
       Resource: '*'
 
 functions:
-  hello:
-    handler: handler.hello
+  sqs:
+    handler: handler.sqs
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt: [MyQueue, Arn]
+          batchSize: 1
 
 stepFunctions:
   validate: true
@@ -50,7 +55,7 @@ stepFunctions:
             Parameters:  
               Input:
                 Token.$: $$.Task.Token
-              StateMachineArn: arn:aws:states:#{AWS::Region}:#{AWS::AccountId}:stateMachine:wait-and-callback
+              StateMachineArn: arn:aws:states:#{AWS::Region}:#{AWS::AccountId}:stateMachine:callback-and-wait
               Name.$: $.name
             ResultPath: $.lastResponse
             End: true
@@ -68,18 +73,27 @@ stepFunctions:
             Type: Pass
             Result: 42
             End: true
-    waitAndCallback:
+    callbackAndWait:
       id: WaitAndCallbackStateMachine
-      name: wait-and-callback
+      name: callback-and-wait
       definition:
-        StartAt: Wait
+        StartAt: Publish SQS Message
         States:
+          Publish SQS Message:
+            Type: Task
+            Resource: arn:aws:states:::sqs:sendMessage
+            Parameters:
+              QueueUrl:
+                Ref: MyQueue
+              MessageBody:
+                Token.$: $.Token
+            Next: Wait
           Wait:
             Type: Wait
-            Seconds: 10
-            Next: Callback
-          Callback:
-            Type: Task
-            Resource:
-              Fn::GetAtt: [hello, Arn]            
+            Seconds: 300
             End: true
+
+resources:
+  Resources:
+    MyQueue:
+      Type: AWS::SQS::Queue
