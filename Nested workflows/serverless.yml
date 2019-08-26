@@ -21,6 +21,9 @@ functions:
             Fn::GetAtt: [MyQueue, Arn]
           batchSize: 1
 
+  throw:
+    handler: handler.throw    
+
 stepFunctions:
   validate: true
   stateMachines:
@@ -36,7 +39,7 @@ stepFunctions:
             Resource: arn:aws:states:::states:startExecution
             Parameters:  
               Input: "42"                
-              StateMachineArn: arn:aws:states:#{AWS::Region}:#{AWS::AccountId}:stateMachine:wait-and-respond
+              StateMachineArn: arn:aws:states:#{AWS::Region}:#{AWS::AccountId}:stateMachine:wait-and-error
               Name.$: $.name
             ResultPath: $.lastResponse
             Next: Sync
@@ -57,7 +60,21 @@ stepFunctions:
                 Token.$: $$.Task.Token
               StateMachineArn: arn:aws:states:#{AWS::Region}:#{AWS::AccountId}:stateMachine:callback-and-wait
               Name.$: $.name
-            ResultPath: $.lastResponse
+            End: true
+    waitAndError:
+      id: WaitAndErrorStateMachine
+      name: wait-and-error
+      definition:
+        StartAt: Wait
+        States:
+          Wait:
+            Type: Wait
+            Seconds: 10
+            Next: Respond
+          Respond:
+            Type: Task
+            Resource:
+              Fn::GetAtt: [throw, Arn]
             End: true
     waitAndRespond:
       id: WaitAndRespondStateMachine

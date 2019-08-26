@@ -12,3 +12,7 @@ module.exports.sqs = async event => {
     taskToken: body.Token
   }).promise()
 }
+
+module.exports.throw = async () => {
+  throw new Error('boom')
+}
